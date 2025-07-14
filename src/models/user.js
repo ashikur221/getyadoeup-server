@@ -13,7 +13,10 @@ const userSchema = new mongoose.Schema({
         enum: ['admin', 'student', 'trainer'], // add or adjust roles as needed
         required: true
     },
-    phone: String
+    phone: String,
+    isVerified: { type: Boolean, default: false },
+    otp: String,
+    otpExpiry: Date,
 })
 
 module.exports = mongoose.model('User', userSchema);
