@@ -25,6 +25,31 @@ const signup = async (req, res) => {
     }
 }
 
+
+const login = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).send("User not found");
+        }
+
+        // In a real app, use hashed passwords and compare with bcrypt
+        if (user.password !== password) {
+            return res.status(400).send("Invalid  password");
+        }
+
+        // For now, just return a success message and user info (excluding password)
+        const { password: _, ...userData } = user.toObject();
+        res.status(200).json({ message: "Login successful", user: userData });
+    } catch (error) {
+        res.status(500).send("Internal server error");
+    }
+}
+
+
+
 module.exports = {
-    signup
+    signup,
+    login
 }
