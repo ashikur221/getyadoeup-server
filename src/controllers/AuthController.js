@@ -118,10 +118,186 @@ const getUserProfile = async (req, res) => {
 }
 
 
+const updateUserProfile = async (req, res) => {
+
+    console.log(req.body);
+    try {
+        const user = await User.findOne({ email: req.user.email });
+
+        if (!user) {
+            return res.status(400).json({ message: "User not found" });
+        }
+
+        // console.log(user);
+
+        // Only allow certain fields to be updated
+        const allowedUpdates = ['name', 'email', 'phone'];
+        allowedUpdates.forEach(field => {
+            if (req.body[field] !== undefined) {
+                user[field] = req.body[field];
+            }
+        });
+
+        // Yes, this is correct. You should use user.save() here to persist the changes made to the user document instance.
+        await user.save();
+
+        const { password: _, ...userData } = user.toObject();
+        res.status(200).json({ message: "Profile updated successfully", user: userData });
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({ message: "Error updating profile" });
+    }
+}
+
+const changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({ message: "Old password and new password are required" });
+        }
+
+        const user = await User.findOne({ email: req.user.email });
+
+        if (!user) {
+            return res.status(400).json({ message: "User not found" });
+        }
+
+        // Compare old password
+        // If you use bcrypt, replace this with bcrypt.compare
+        const isPasswordValid = await bcrypt.compare(oldPassword, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({ message: "Old password is incorrect" });
+        }
+
+        // Optionally, you can add password strength validation here
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await user.save();
+
+        res.status(200).json({ message: "Password changed successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Error changing password" });
+    }
+}
+
+
+const forgetPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            return res.status(400).json({ message: "Email is required" });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Generate a 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+
+        user.otp = otp;
+        user.otpExpiry = otpExpiry;
+        await user.save();
+
+        // Here you would send the OTP to the user's email.
+        await sendOtp(email, otp);
+
+        res.status(200).json({ message: "OTP sent to email" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Error processing forget password" });
+    }
+};
+
+const resetPassword = async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ message: "Email, OTP, and new password are required" });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        if (!user.otp || !user.otpExpiry || user.otp !== otp) {
+            return res.status(400).json({ message: "Invalid OTP" });
+        }
+
+        if (user.otpExpiry < new Date()) {
+            return res.status(400).json({ message: "OTP expired" });
+        }
+
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+        user.otp = undefined;
+        user.otpExpiry = undefined;
+        await user.save();
+
+        res.status(200).json({ message: "Password reset successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Error resetting password" });
+    }
+};
+
+const deleteAccount = async (req, res) => {
+    try {
+        const userId = req.user && req.user.id;
+        if (!userId) {
+            return res.status(401).json({ message: "Unauthorized" });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        await User.deleteOne({ _id: userId });
+
+        res.status(200).json({ message: "Account deleted successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Error deleting account" });
+    }
+};
+
+const deleteAllAccounts = async (req, res) => {
+    try {
+        // // Only allow admin to delete all accounts
+        // if (!req.user || req.user.role !== "admin") {
+        //     return res.status(403).json({ message: "Unauthorized" });
+        // }
+
+        await User.deleteMany({});
+
+        res.status(200).json({ message: "All accounts deleted successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Error deleting all accounts" });
+    }
+};
+
+
+
+
 
 module.exports = {
     signup,
     login,
     verifyOtp,
-    getUserProfile
+    getUserProfile,
+    updateUserProfile,
+    changePassword,
+    forgetPassword,
+    resetPassword,
+    deleteAccount,
+    deleteAllAccounts
 }
