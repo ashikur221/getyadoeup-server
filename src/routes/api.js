@@ -3,9 +3,26 @@ const { hello } = require('../controllers/HelloController.js');
 const { signup, login, verifyOtp, getUserProfile, updateUserProfile, changePassword, forgetPassword, resetPassword, deleteAccount, deleteAllAccounts } = require('../controllers/AuthController.js');
 const { authenticateToken, authorizeRoles } = require('../middlewares/auth.middleware.js');
 const { getAllUsers } = require('../controllers/AdminController.js');
+const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog } = require('../controllers/BlogController.js');
+const { createTestimonial, getAllTestimonials, updateTestimonial, deleteTestimonial, getTestimonialById } = require('../controllers/TestimonialController.js');
 const router = express.Router();
 
 router.get('/', hello);
+
+// blog related api
+router.post("/create-blog", authenticateToken, authorizeRoles("admin"), createBlog);
+router.get("/get-all-blogs", getAllBlogs);
+router.get("/get-blog/:id", getBlogById);
+router.put("/update-blog/:id", authenticateToken, authorizeRoles("admin"), updateBlog);
+router.delete("/delete-blog/:id", authenticateToken, authorizeRoles("admin"), deleteBlog);
+
+// testimonial related api
+router.post("/create-testimonial", authenticateToken, authorizeRoles("admin"), createTestimonial);
+router.get("/get-all-testimonials", getAllTestimonials);
+router.get("/get-testimonial/:id", getTestimonialById);
+
+router.put("/update-testimonial/:id", authenticateToken, authorizeRoles("admin"), updateTestimonial);
+router.delete("/delete-testimonial/:id", authenticateToken, authorizeRoles("admin"), deleteTestimonial);
 
 // authentication related api 
 router.post("/signup", signup)
