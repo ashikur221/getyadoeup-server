@@ -1,6 +1,6 @@
 const express = require('express');
 const { hello } = require('../controllers/HelloController.js');
-const { signup, login, verifyOtp, getUserProfile, updateUserProfile, changePassword, forgetPassword, resetPassword, deleteAccount, deleteAllAccounts } = require('../controllers/AuthController.js');
+const { signup, login, verifyOtp, getUserProfile, updateUserProfile, changePassword, forgetPassword, resetPassword, deleteAccount, deleteAllAccounts, updateUserRoleByAdmin, deleteUserByAdmin, getUserById } = require('../controllers/AuthController.js');
 const { authenticateToken, authorizeRoles } = require('../middlewares/auth.middleware.js');
 const { getAllUsers } = require('../controllers/AdminController.js');
 const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog } = require('../controllers/BlogController.js');
@@ -37,7 +37,13 @@ router.delete("/delete-account", authenticateToken, deleteAccount);
 
 
 // admin related api
-router.get("/admin/users", authenticateToken, authorizeRoles("admin"), getAllUsers)
+router.get("/admin/users", authenticateToken, authorizeRoles("admin"), getAllUsers);
 
+
+router.get("/admin/user/:id", authenticateToken, authorizeRoles("admin"), getUserById);
+
+router.put("/admin/update-user-role", authenticateToken, authorizeRoles("admin"), updateUserRoleByAdmin);
+
+router.delete("/admin/delete-user/:id", authenticateToken, authorizeRoles("admin"), deleteUserByAdmin);
 
 module.exports = router;

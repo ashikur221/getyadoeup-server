@@ -269,21 +269,52 @@ const deleteAccount = async (req, res) => {
     }
 };
 
-const deleteAllAccounts = async (req, res) => {
+// Admin functions
+
+const getUserById = async (req, res) => {
     try {
-        // // Only allow admin to delete all accounts
-        // if (!req.user || req.user.role !== "admin") {
-        //     return res.status(403).json({ message: "Unauthorized" });
-        // }
+        const { id } = req.params;
 
-        await User.deleteMany({});
-
-        res.status(200).json({ message: "All accounts deleted successfully" });
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ user });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ message: "Error deleting all accounts" });
+        res.status(500).json({ message: "Error fetching user" });
     }
-};
+}
+
+const updateUserRoleByAdmin = async (req, res) => {
+    try {
+        const { id, userRole } = req.body;
+        const user = await User.findById(id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        user.userRole = userRole;
+        await user.save();
+        res.status(200).json({ message: "User role updated successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Error updating user role" });
+    }
+}
+
+const deleteUserByAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await User.findByIdAndDelete(id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "User deleted successfully" });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: "Error deleting user" });
+    }
+}
 
 
 
@@ -299,5 +330,7 @@ module.exports = {
     forgetPassword,
     resetPassword,
     deleteAccount,
-    deleteAllAccounts
+    updateUserRoleByAdmin,
+    deleteUserByAdmin,
+    getUserById
 }
