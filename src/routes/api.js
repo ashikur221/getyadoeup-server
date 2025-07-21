@@ -5,6 +5,8 @@ const { authenticateToken, authorizeRoles } = require('../middlewares/auth.middl
 const { getAllUsers } = require('../controllers/AdminController.js');
 const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog } = require('../controllers/BlogController.js');
 const { createTestimonial, getAllTestimonials, updateTestimonial, deleteTestimonial, getTestimonialById } = require('../controllers/TestimonialController.js');
+const { getAllTrainers } = require('../controllers/UserController.js');
+const { updateTrainerProfile, getTrainerInfo } = require('../controllers/TrainerController.js');
 const router = express.Router();
 
 router.get('/', hello);
@@ -24,7 +26,9 @@ router.get("/get-testimonial/:id", getTestimonialById);
 router.put("/update-testimonial/:id", authenticateToken, authorizeRoles("admin"), updateTestimonial);
 router.delete("/delete-testimonial/:id", authenticateToken, authorizeRoles("admin"), deleteTestimonial);
 
-// authentication related api 
+
+
+// authentication related api
 router.post("/signup", signup)
 router.post("/login", login)
 router.post("/verify-otp", verifyOtp)
@@ -46,4 +50,11 @@ router.put("/admin/update-user-role", authenticateToken, authorizeRoles("admin")
 
 router.delete("/admin/delete-user/:id", authenticateToken, authorizeRoles("admin"), deleteUserByAdmin);
 
+// Trainer profile
+router.put("/trainer/update-profile", authenticateToken, updateTrainerProfile);
+router.get("/trainer/get-profile", authenticateToken, authorizeRoles("trainer"), getTrainerInfo);
+
+
 module.exports = router;
+
+
