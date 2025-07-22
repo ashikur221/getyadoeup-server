@@ -30,6 +30,10 @@ const trainerSchema = new mongoose.Schema({
     },
     linkedinUrl: {
         type: String,
+    },
+    featured: {
+        type: Boolean,
+        default: false,
     }
 }, { timestamps: true });
 

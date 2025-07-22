@@ -5,8 +5,7 @@ const { authenticateToken, authorizeRoles } = require('../middlewares/auth.middl
 const { getAllUsers } = require('../controllers/AdminController.js');
 const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog } = require('../controllers/BlogController.js');
 const { createTestimonial, getAllTestimonials, updateTestimonial, deleteTestimonial, getTestimonialById } = require('../controllers/TestimonialController.js');
-const { getAllTrainers } = require('../controllers/UserController.js');
-const { updateTrainerProfile, getTrainerInfo } = require('../controllers/TrainerController.js');
+const { updateTrainerProfile, getTrainerInfo, getAllTrainers, setTrainerFeatured, getFeaturedTrainers } = require('../controllers/TrainerController.js');
 const router = express.Router();
 
 router.get('/', hello);
@@ -53,6 +52,10 @@ router.delete("/admin/delete-user/:id", authenticateToken, authorizeRoles("admin
 // Trainer profile
 router.put("/trainer/update-profile", authenticateToken, updateTrainerProfile);
 router.get("/trainer/get-profile", authenticateToken, authorizeRoles("trainer"), getTrainerInfo);
+router.get('/trainer/get-all-trainer', authenticateToken, authorizeRoles("admin"), getAllTrainers);
+router.put('/trainer/set-featured', authenticateToken, authorizeRoles("admin"), setTrainerFeatured);
+router.get('/trainer/get-featured-trainer', getFeaturedTrainers);
+
 
 
 module.exports = router;
