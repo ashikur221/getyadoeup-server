@@ -161,10 +161,51 @@ const getFeaturedTrainers = async (req, res) => {
     }
 };
 
+
+
+const deleteTrainer = async (req, res) => {
+    try {
+        const { userId } = req.params; //userId of the trainer
+        console.log(userId)
+
+        // Find the user by ID and ensure they are a trainer 
+        const user = await User.findById(userId);
+        console.log(user)
+
+        if (!user || user.userRole !== 'trainer') {
+            return res.status(404).json({
+                success: false,
+                message: 'Trainer user not found.'
+            });
+        }
+
+        // Delete the Trainer profile if it exists 
+        await Trainer.findOneAndDelete({ user: userId });
+
+        // Delete the user 
+        await User.findByIdAndDelete(userId);
+
+        res.status(200).json({
+            success: true,
+            message: 'Trainer user and profile (if existed) deleted successfully'
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error',
+            error: error.message,
+        })
+    }
+};
+
+
+
 module.exports = {
     updateTrainerProfile,
     getTrainerInfo,
     getAllTrainers,
     setTrainerFeatured,
     getFeaturedTrainers,
+    deleteTrainer
 }; 
