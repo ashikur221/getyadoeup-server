@@ -1,12 +1,17 @@
+// Update a course by the currently authenticated trainer
+
 const Trainer = require('../models/trainerModel.js');
+const Course = require('../models/courseModel.js');
 const mongoose = require('mongoose');
 const User = require('../models/user.js');
 
+// auth related function 
 
 const updateTrainerProfile = async (req, res) => {
     try {
         const {
             specializations,
+            previousWorks,
             certifications,
             about,
             profilePhoto,
@@ -30,6 +35,7 @@ const updateTrainerProfile = async (req, res) => {
             trainerProfile.twitterUrl = twitterUrl || trainerProfile.twitterUrl;
             trainerProfile.instagramUrl = instagramUrl || trainerProfile.instagramUrl;
             trainerProfile.linkedinUrl = linkedinUrl || trainerProfile.linkedinUrl;
+            trainerProfile.previousWorks = previousWorks || trainerProfile.previousWorks;
         } else {
             // Create new profile
             trainerProfile = new Trainer({
@@ -41,7 +47,8 @@ const updateTrainerProfile = async (req, res) => {
                 facebookUrl,
                 twitterUrl,
                 instagramUrl,
-                linkedinUrl
+                linkedinUrl,
+                previousWorks
             });
         }
 
@@ -199,6 +206,115 @@ const deleteTrainer = async (req, res) => {
     }
 };
 
+// course related function 
+
+// Get all courses of the currently authenticated instructor (trainer)
+const getCoursesByTrainer = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        // Find the trainer profile for the authenticated user
+        const trainerProfile = await Trainer.findOne({ user: userId });
+        if (!trainerProfile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Trainer profile not found',
+            });
+        }
+        // Find all courses where the instructor is this trainer
+        const courses = await Course.find({ instructor: trainerProfile._id }).populate({
+            path: 'instructor',
+            populate: { path: 'user' }
+        })
+        res.status(200).json({
+            success: true,
+            data: courses,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error',
+            error: error.message,
+        });
+    }
+};
+
+
+
+// Delete a course by the currently authenticated trainer
+const deleteCourseByTrainer = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { courseId } = req.params;
+        // Find the trainer profile for the authenticated user
+        const trainerProfile = await Trainer.findOne({ user: userId });
+        if (!trainerProfile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Trainer profile not found',
+            });
+        }
+        // Find the course and ensure it belongs to this trainer
+        const course = await Course.findOne({ _id: courseId, instructor: trainerProfile._id });
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: 'Course not found or you do not have permission to delete this course',
+            });
+        }
+        await Course.deleteOne({ _id: courseId });
+        res.status(200).json({
+            success: true,
+            message: 'Course deleted successfully',
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error',
+            error: error.message,
+        });
+    }
+};
+
+
+const updateCourseByTrainer = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { courseId } = req.params;
+        const updateData = req.body;
+        // Find the trainer profile for the authenticated user
+        const trainerProfile = await Trainer.findOne({ user: userId });
+        if (!trainerProfile) {
+            return res.status(404).json({
+                success: false,
+                message: 'Trainer profile not found',
+            });
+        }
+        // Find the course and ensure it belongs to this trainer
+        const course = await Course.findOne({ _id: courseId, instructor: trainerProfile._id });
+        if (!course) {
+            return res.status(404).json({
+                success: false,
+                message: 'Course not found or you do not have permission to update this course',
+            });
+        }
+        // Update the course with the provided data
+        Object.assign(course, updateData);
+        await course.save();
+        res.status(200).json({
+            success: true,
+            message: 'Course updated successfully',
+            data: course
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Server Error',
+            error: error.message,
+        });
+    }
+};
+
+
 
 
 module.exports = {
@@ -207,5 +323,8 @@ module.exports = {
     getAllTrainers,
     setTrainerFeatured,
     getFeaturedTrainers,
-    deleteTrainer
+    deleteTrainer,
+    getCoursesByTrainer,
+    deleteCourseByTrainer,
+    updateCourseByTrainer
 }; 

@@ -2,11 +2,11 @@ const express = require('express');
 const { hello } = require('../controllers/HelloController.js');
 const { signup, login, verifyOtp, getUserProfile, updateUserProfile, changePassword, forgetPassword, resetPassword, deleteAccount, deleteAllAccounts, updateUserRoleByAdmin, deleteUserByAdmin, getUserById } = require('../controllers/AuthController.js');
 const { authenticateToken, authorizeRoles } = require('../middlewares/auth.middleware.js');
-const { getAllUsers } = require('../controllers/AdminController.js');
+const { getAllUsers, deleteCourseByAdmin } = require('../controllers/AdminController.js');
 const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog } = require('../controllers/BlogController.js');
 const { createTestimonial, getAllTestimonials, updateTestimonial, deleteTestimonial, getTestimonialById } = require('../controllers/TestimonialController.js');
-const { updateTrainerProfile, getTrainerInfo, getAllTrainers, setTrainerFeatured, getFeaturedTrainers, deleteTrainer } = require('../controllers/TrainerController.js');
-const { createCourse } = require('../controllers/CourseController.js');
+const { updateTrainerProfile, getTrainerInfo, getAllTrainers, setTrainerFeatured, getFeaturedTrainers, deleteTrainer, getCoursesByTrainer, deleteCourseByTrainer, updateCourseByTrainer } = require('../controllers/TrainerController.js');
+const { createCourse, getSingleCourse, getAllCourses, contactTrainerInfo } = require('../controllers/CourseController.js');
 
 const router = express.Router();
 
@@ -46,6 +46,9 @@ router.get("/admin/users", authenticateToken, authorizeRoles("admin"), getAllUse
 router.get("/admin/user/:id", authenticateToken, authorizeRoles("admin"), getUserById);
 router.put("/admin/update-user-role", authenticateToken, authorizeRoles("admin"), updateUserRoleByAdmin);
 router.delete("/admin/delete-user/:id", authenticateToken, authorizeRoles("admin"), deleteUserByAdmin);
+// admin course related api 
+router.delete("/admin/delete-course/:courseId", authenticateToken, authorizeRoles("admin"), deleteCourseByAdmin);
+
 
 // Trainer profile
 router.put("/trainer/update-profile", authenticateToken, updateTrainerProfile);
@@ -57,7 +60,16 @@ router.delete('/trainer/delete/:userId', authenticateToken, authorizeRoles("admi
 
 
 // course Related API 
-router.post('/trainer/create-course', authenticateToken, createCourse)
+router.post('/trainer/create-course', authenticateToken, createCourse);
+router.get('/course/:courseId', getSingleCourse);
+router.get('/all-courses', getAllCourses);
+router.get('/trainer-info/:id', contactTrainerInfo)
+
+// trainer dashboard related API
+router.get('/trainer/get-courses', authenticateToken, authorizeRoles("trainer"), getCoursesByTrainer);
+router.delete('/trainer/delete-course/:courseId', authenticateToken, authorizeRoles("trainer"), deleteCourseByTrainer);
+// trainer update course
+router.put('/trainer/update-course/:courseId', authenticateToken, authorizeRoles("trainer"), updateCourseByTrainer);
 
 
 module.exports = router;

@@ -19,6 +19,9 @@ const trainerSchema = new mongoose.Schema({
     profilePhoto: {
         type: String, // URL to the photo
     },
+    previousWorks: {
+        type: [String], // URL to the photo
+    },
     facebookUrl: {
         type: String,
     },
