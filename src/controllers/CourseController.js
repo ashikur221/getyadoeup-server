@@ -114,7 +114,7 @@ const contactTrainerInfo = async (req, res) => {
     try {
 
         const { id } = req.params;
-        console.log(id);
+        // console.log(id);
         const trainerProfile = await Trainer.findOne({ _id: id }).populate('user');
 
         if (!trainerProfile) {

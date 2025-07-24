@@ -1,8 +1,11 @@
+
+
 const crypto = require('crypto');
 const ReviewLink = require('../models/reviewLinkModel.js');
 const Course = require('../models/courseModel.js');
 const Trainer = require('../models/trainerModel.js')
 const StudentReview = require('../models/studentReviewModel.js')
+const User = require('../models/user.js');
 
 // Generate a unique review link for a course
 const generateReviewLink = async (req, res) => {
@@ -210,9 +213,83 @@ const submitReview = async (req, res) => {
 };
 
 
+const getReviewsByStudent = async (req, res) => {
+    try {
+        const { id } = req.user;
+
+        if (!id) {
+            return res.status(400).json({ success: false, message: 'Student ID is required.' });
+        }
+        const reviews = await StudentReview.find({ student_id: id })
+            .populate('course_id')
+            .populate('reviewLink_id')
+            .populate({
+                path: 'trainer_id',
+                populate: { path: 'user' }
+            })
+            ;
+
+
+        res.status(200).json({ success: true, data: reviews });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+};
+
+const getReviewsByTrainer = async (req, res) => {
+    try {
+        const { id } = req.user;
+
+        // console.log(id);
+        if (!id) {
+            return res.status(400).json({ success: false, message: 'Trainer ID is required.' });
+        }
+
+        const trainer = await Trainer.findOne({ user: id });
+        if (!trainer) {
+            return res.status(404).json({ success: false, message: 'Trainer not found.' });
+        }
+
+        const reviews = await StudentReview.find({ trainer_id: trainer._id })
+            .populate('course_id')
+            .populate('reviewLink_id')
+            .populate({
+                path: 'trainer_id',
+                populate: { path: 'user' }
+            });
+        res.status(200).json({ success: true, data: reviews });
+
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+}
+
+
+const getReviewByCourse = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const reviews = await StudentReview.find({ course_id: id })
+            .populate('course_id')
+            .populate('reviewLink_id')
+            .populate({
+                path: 'trainer_id',
+                populate: { path: 'user' }
+            })
+            .populate('student_id')
+            ;
+        res.status(200).json({ success: true, data: reviews });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+}
+
+
 
 module.exports = {
     generateReviewLink,
     verifyReviewLink,
-    submitReview
+    submitReview,
+    getReviewsByStudent,
+    getReviewsByTrainer,
+    getReviewByCourse
 }

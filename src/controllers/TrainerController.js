@@ -173,11 +173,11 @@ const getFeaturedTrainers = async (req, res) => {
 const deleteTrainer = async (req, res) => {
     try {
         const { userId } = req.params; //userId of the trainer
-        console.log(userId)
+        // console.log(userId)
 
         // Find the user by ID and ensure they are a trainer 
         const user = await User.findById(userId);
-        console.log(user)
+        // console.log(user)
 
         if (!user || user.userRole !== 'trainer') {
             return res.status(404).json({
