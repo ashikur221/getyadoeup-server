@@ -6,7 +6,8 @@ const { getAllUsers, deleteCourseByAdmin } = require('../controllers/AdminContro
 const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog } = require('../controllers/BlogController.js');
 const { createTestimonial, getAllTestimonials, updateTestimonial, deleteTestimonial, getTestimonialById } = require('../controllers/TestimonialController.js');
 const { updateTrainerProfile, getTrainerInfo, getAllTrainers, setTrainerFeatured, getFeaturedTrainers, deleteTrainer, getCoursesByTrainer, deleteCourseByTrainer, updateCourseByTrainer } = require('../controllers/TrainerController.js');
-const { createCourse, getSingleCourse, getAllCourses, contactTrainerInfo } = require('../controllers/CourseController.js');
+const { createCourse, getSingleCourse, getAllCourses, contactTrainerInfo, getBookmarkedCourses, toggleBookmark } = require('../controllers/CourseController.js');
+const { generateReviewLink, verifyReviewLink, submitReview } = require('../controllers/ReviewController.js');
 
 const router = express.Router();
 
@@ -64,6 +65,16 @@ router.post('/trainer/create-course', authenticateToken, createCourse);
 router.get('/course/:courseId', getSingleCourse);
 router.get('/all-courses', getAllCourses);
 router.get('/trainer-info/:id', contactTrainerInfo)
+router.post('/add-bookmark', authenticateToken, authorizeRoles("student"), toggleBookmark);
+router.get('/get-bookmarked-courses', authenticateToken, authorizeRoles("student"), getBookmarkedCourses);
+
+
+// review related api 
+router.post('/trainer/generate-review-link', authenticateToken, authorizeRoles("trainer"), generateReviewLink);
+router.get('/verify-review-link/:token', verifyReviewLink);
+router.post('/student/submitReview', authenticateToken, authorizeRoles("student"), submitReview);
+
+
 
 // trainer dashboard related API
 router.get('/trainer/get-courses', authenticateToken, authorizeRoles("trainer"), getCoursesByTrainer);

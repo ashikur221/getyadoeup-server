@@ -1,6 +1,7 @@
 const Course = require('../models/courseModel.js');
 const Trainer = require('../models/trainerModel.js');
 const User = require('../models/user.js');
+const Bookmark = require('../models/bookmarkModel.js');
 
 
 // Get a single course by ID, including instructor and user data
@@ -136,11 +137,52 @@ const contactTrainerInfo = async (req, res) => {
     }
 };
 
+// Toggle bookmark: add if not bookmarked, remove if already bookmarked
+const toggleBookmark = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { courseId } = req.body;
+
+        if (!courseId) {
+            return res.status(400).json({ success: false, message: 'Course ID is required.' });
+        }
+        const existing = await Bookmark.findOne({ user: userId, course: courseId });
+        if (existing) {
+            await Bookmark.deleteOne({ _id: existing._id });
+            return res.status(200).json({ success: true, message: 'Bookmark removed.' });
+        }
+        const bookmark = new Bookmark({ user: userId, course: courseId });
+        await bookmark.save();
+        res.status(201).json({ success: true, message: 'Course bookmarked.', data: bookmark });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+};
+
+
+// Get all bookmarked courses for the authenticated user
+const getBookmarkedCourses = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const bookmarks = await Bookmark.find({ user: userId }).populate({
+            path: 'course',
+            populate: { path: 'instructor', populate: { path: 'user' } }
+        });
+        const courses = bookmarks.map(b => b.course);
+        res.status(200).json({ success: true, data: courses });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+};
+
+
 
 
 module.exports = {
     createCourse,
     getSingleCourse,
     getAllCourses,
-    contactTrainerInfo
+    contactTrainerInfo,
+    toggleBookmark,
+    getBookmarkedCourses
 };
