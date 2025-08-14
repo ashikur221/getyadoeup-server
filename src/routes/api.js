@@ -5,7 +5,7 @@ const { authenticateToken, authorizeRoles } = require('../middlewares/auth.middl
 const { getAllUsers, deleteCourseByAdmin } = require('../controllers/AdminController.js');
 const { createBlog, getAllBlogs, getBlogById, updateBlog, deleteBlog } = require('../controllers/BlogController.js');
 const { createTestimonial, getAllTestimonials, updateTestimonial, deleteTestimonial, getTestimonialById } = require('../controllers/TestimonialController.js');
-const { updateTrainerProfile, getTrainerInfo, getAllTrainers, setTrainerFeatured, getFeaturedTrainers, deleteTrainer, getCoursesByTrainer, deleteCourseByTrainer, updateCourseByTrainer } = require('../controllers/TrainerController.js');
+const { updateTrainerProfile, getTrainerInfo, getAllTrainers, setTrainerFeatured, getFeaturedTrainers, deleteTrainer, getCoursesByTrainer, deleteCourseByTrainer, updateCourseByTrainer, searchTrainerByName } = require('../controllers/TrainerController.js');
 const { createCourse, getSingleCourse, getAllCourses, contactTrainerInfo, getBookmarkedCourses, toggleBookmark } = require('../controllers/CourseController.js');
 const { generateReviewLink, verifyReviewLink, submitReview, getReviewsByStudent, getReviewsByTrainer, getReviewByCourse } = require('../controllers/ReviewController.js');
 
@@ -82,6 +82,7 @@ router.get('/trainer/get-courses', authenticateToken, authorizeRoles("trainer"),
 router.delete('/trainer/delete-course/:courseId', authenticateToken, authorizeRoles("trainer"), deleteCourseByTrainer);
 // trainer update course
 router.put('/trainer/update-course/:courseId', authenticateToken, authorizeRoles("trainer"), updateCourseByTrainer);
+router.post('/search-trainer-by-name', searchTrainerByName);
 
 
 module.exports = router;

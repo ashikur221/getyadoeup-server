@@ -1,4 +1,4 @@
-// Update a course by the currently authenticated trainer
+
 
 const Trainer = require('../models/trainerModel.js');
 const Course = require('../models/courseModel.js');
@@ -275,7 +275,33 @@ const deleteCourseByTrainer = async (req, res) => {
     }
 };
 
+// Search trainers by name
+const searchTrainerByName = async (req, res) => {
+    try {
+        const { name } = req.body;
+        
+        if (!name) {
+            return res.status(400).json({ success: false, message: 'Educator name is required.' });
+        }
+        // Find users with userRole 'trainer' and name matching (case-insensitive)
+        const users = await User.find({ userRole: 'trainer', name: { $regex: name, $options: 'i' } });
+       
+        // For each user, try to find their trainer profile
+        const trainers = await Promise.all(users.map(async (user) => {
+            const trainerProfile = await Trainer.findOne({ user: user._id });
+            return {
+                user,
+                trainerProfile
+            };
+        }));
+        res.status(200).json({ success: true, data: trainers });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Server Error', error: error.message });
+    }
+};
 
+
+// Update a course by the currently authenticated trainer
 const updateCourseByTrainer = async (req, res) => {
     try {
         const userId = req.user.id;
@@ -317,6 +343,8 @@ const updateCourseByTrainer = async (req, res) => {
 
 
 
+
+
 module.exports = {
     updateTrainerProfile,
     getTrainerInfo,
@@ -326,5 +354,6 @@ module.exports = {
     deleteTrainer,
     getCoursesByTrainer,
     deleteCourseByTrainer,
-    updateCourseByTrainer
+    updateCourseByTrainer,
+    searchTrainerByName
 }; 
